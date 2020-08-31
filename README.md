@@ -1,3 +1,74 @@
+
+# 源码分析
+
+传统模式下，dispatch只能传入一个action，比如：
+
+``` js
+
+export const addTodo = text => ({
+  type: 'ADD_TODO',
+  id: nextTodoId++,
+  text
+})
+
+dispatch(addTodo(input.value))
+
+```
+
+而通过redux-thunk后，dispatch可以返回一个函数，从而来做异步的事情。
+
+
+
+## 文件结构
+
+``` bash
+/Users/liufang/openSource/FunnyLiu/redux-thunk
+├── src
+|  └── index.js - 核心源码
+└── webpack.config.babel.js
+
+directory: 1 file: 11
+
+ignored: directory (1)
+
+```
+
+## 外部模块依赖
+
+![img](./outer.svg)
+
+## 内部模块依赖
+
+![img](./inner.svg)
+  
+
+## 知识点
+
+### 核心实现
+
+store.dispatch方法正常情况下，参数只能是对象，不能是函数，redux-thunk相关与给它套了一层函数。
+
+``` js
+
+function createThunkMiddleware(extraArgument) {
+  // store.dispatch方法正常情况下，参数只能是对象，不能是函数。
+  // next为传入的action外壳函数
+  return ({ dispatch, getState }) => (next) => (action) => {
+    if (typeof action === 'function') {
+      return action(dispatch, getState, extraArgument);
+    }
+    // 通过函数来操作action，相当于套了一层。
+    return next(action);
+  };
+}
+
+const thunk = createThunkMiddleware();
+thunk.withExtraArgument = createThunkMiddleware;
+
+export default thunk;
+
+```
+
 # Redux Thunk
 
 Thunk [middleware](https://redux.js.org/advanced/middleware) for Redux.
